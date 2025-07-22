@@ -41,18 +41,6 @@ function App() {
 
   return (
     <div className="relative min-h-screen">
-      <button
-        className="absolute top-4 right-4 text-xs text-red-500 hover:underline border px-2 py-1 rounded z-10"
-        onClick={handleLogout}
-      >
-        Log out
-      </button>
-      <button
-        className="absolute top-4 left-4 text-xs text-blue-500 hover:underline border px-2 py-1 rounded z-10"
-        onClick={() => setProject(null)}
-      >
-        Switch Project
-      </button>
       <Layout />
     </div>
   );

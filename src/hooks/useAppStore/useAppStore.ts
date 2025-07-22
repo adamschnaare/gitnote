@@ -3,7 +3,10 @@ import { githubRequest } from "../../lib/github";
 import { buildFileMap, buildFileTree } from "./helpers";
 import type { AppState, FileChangeType, BranchData, TreeData } from "./types";
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
+  owner: "",
+  repo: "",
+  branch: "",
   files: {},
   tree: [],
   currentFile: null,
@@ -27,7 +30,7 @@ export const useAppStore = create<AppState>((set) => ({
           const type: FileChangeType =
             prevContent === undefined ? "created" : "modified";
           fileChanges = fileChanges.filter(
-            (c) => c.path !== path || c.type !== "modified"
+            (c) => c.path !== path && c.type !== "modified"
           );
           fileChanges.push({ path, type, content });
         }
@@ -47,6 +50,7 @@ export const useAppStore = create<AppState>((set) => ({
     })),
   // Fetch and set the repo tree and file contents from GitHub
   setRepoTree: async (owner: string, repo: string, branch = "main") => {
+    const oldCurrentFile = get().currentFile;
     // 1. Get the default branch SHA
     const branchData = await githubRequest<BranchData>(
       `/repos/${owner}/${repo}/branches/${branch}`
@@ -69,7 +73,13 @@ export const useAppStore = create<AppState>((set) => ({
           `/repos/${owner}/${repo}/git/blobs/${item.sha}`
         );
         // Blobs are base64 encoded
-        blobs[item.sha] = atob(blob.content.replace(/\n/g, ""));
+        // Use TextDecoder to correctly handle UTF-8 characters (like emojis)
+        const decodedContent = new TextDecoder().decode(
+          Uint8Array.from(atob(blob.content.replace(/\n/g, "")), (c) =>
+            c.charCodeAt(0)
+          )
+        );
+        blobs[item.sha] = decodedContent;
       })
     );
     // 4. Build FileMap and FileNode tree
@@ -77,9 +87,15 @@ export const useAppStore = create<AppState>((set) => ({
     const fileTree = buildFileTree(tree);
     // 5. Set state
     set({
+      owner,
+      repo,
+      branch,
       files: fileMap,
       tree: fileTree,
-      currentFile: Object.keys(fileMap)[0] || null,
+      currentFile:
+        oldCurrentFile && fileMap[oldCurrentFile]
+          ? oldCurrentFile
+          : Object.keys(fileMap)[0] || null,
       fileChanges: [],
       stagedFiles: [],
     });

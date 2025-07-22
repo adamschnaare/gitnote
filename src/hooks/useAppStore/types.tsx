@@ -21,6 +21,9 @@ export interface FileChange {
 }
 
 export interface AppState {
+  owner: string;
+  repo: string;
+  branch: string;
   files: FileMap;
   tree: FileNode[];
   currentFile: string | null;

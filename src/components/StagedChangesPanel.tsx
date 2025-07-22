@@ -1,23 +1,20 @@
 import { useState } from "react";
 import { createCommit } from "../lib/github";
 import { useAppStore } from "../hooks/useAppStore/useAppStore";
-import RepoBranchSelector from "./RepoBranchSelector";
-import type { RepoBranch } from "./RepoBranchSelector";
 
 export default function StagedChangesPanel() {
+  const owner = useAppStore((s) => s.owner);
+  const repo = useAppStore((s) => s.repo);
+  const branch = useAppStore((s) => s.branch);
   const fileChanges = useAppStore((s) => s.fileChanges);
   const stagedFiles = useAppStore((s) => s.stagedFiles);
   const files = useAppStore((s) => s.files);
   const stageFile = useAppStore((s) => s.stageFile);
   const unstageFile = useAppStore((s) => s.unstageFile);
+  const setRepoTree = useAppStore((s) => s.setRepoTree);
   const [commitMsg, setCommitMsg] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [repoBranch, setRepoBranch] = useState<RepoBranch>({
-    owner: "",
-    repo: "",
-    branch: "",
-  });
 
   const unstaged = fileChanges.filter((c) => !stagedFiles.includes(c.path));
   const staged = fileChanges.filter((c) => stagedFiles.includes(c.path));
@@ -26,15 +23,16 @@ export default function StagedChangesPanel() {
     setLoading(true);
     setStatus(null);
     try {
-      if (!repoBranch.owner || !repoBranch.repo || !repoBranch.branch)
-        throw new Error("Select repo and branch");
+      if (!owner || !repo || !branch)
+        throw new Error("Select a project first");
       await createCommit(
-        repoBranch.owner,
-        repoBranch.repo,
-        repoBranch.branch,
+        owner,
+        repo,
+        branch,
         commitMsg,
-        staged.map((c) => ({ path: c.path, content: files[c.path] ?? "" }))
+        staged.map((c) => ({ path: c.path, content: c.content ?? "" }))
       );
+      await setRepoTree(owner, repo, branch);
       setStatus("Commit pushed!");
     } catch (e: unknown) {
       if (e instanceof Error) {
@@ -79,7 +77,6 @@ export default function StagedChangesPanel() {
             handleCommit();
           }}
         >
-          <RepoBranchSelector value={repoBranch} onChange={setRepoBranch} />
           <input
             className="border rounded p-1 text-xs"
             placeholder="Commit message"
