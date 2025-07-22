@@ -1,6 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import { useAppStore } from "../hooks/useAppStore/useAppStore";
 import { useState } from "react";
+import { Button } from "./ui/button";
 
 export default function MarkdownEditor() {
   const currentFile = useAppStore((s) => s.currentFile);
@@ -18,12 +19,9 @@ export default function MarkdownEditor() {
         <span className="font-mono text-xs text-muted-foreground">
           {currentFile}
         </span>
-        <button
-          className="px-2 py-1 rounded bg-muted border text-xs"
-          onClick={() => setPreview((p) => !p)}
-        >
+        <Button variant="outline" onClick={() => setPreview((p) => !p)}>
           {preview ? "Editor" : "Preview"}
-        </button>
+        </Button>
       </div>
       <div className="flex-1 flex gap-4 overflow-hidden">
         <textarea
