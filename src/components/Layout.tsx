@@ -1,6 +1,7 @@
 import { useSelectedProject } from "../hooks/useSelectedProject";
 import { signOutUser } from "../lib/firebase";
 import FileExplorer from "./FileExplorer";
+import { FileExplorerButton } from "./FileExplorerButton";
 import MarkdownEditor from "./MarkdownEditor";
 import StagedChangesPanel from "./StagedChangesPanel";
 import { Button } from "./ui/button";
@@ -17,7 +18,7 @@ export default function Layout() {
     <div className="flex flex-col w-screen h-screen overflow-hidden">
       <div className="flex p-2 border-b-1 justify-between">
         <Button onClick={() => setProject(null)}>Switch Project</Button>
-        <Button className="md:hidden">File Explorer</Button>
+        <FileExplorerButton />
         <Button onClick={handleLogout}>Log out</Button>
       </div>
       <div className="flex flex-1 w-full overflow-hidden">
